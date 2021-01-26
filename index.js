@@ -131,22 +131,3 @@ function process(elements) {
 
   console.log(root.end({ prettyPrint: true }));
 }
-
-// {
-//   type: 'node',
-//   id: 323186806,
-//   lat: 48.2606219,
-//   lon: 17.1634317,
-//   timestamp: '2020-02-20T10:01:41Z',
-//   version: 4,
-//   changeset: 81265561,
-//   user: 'Kookykooky',
-//   uid: 6125147,
-//   tags: {
-//     ele: '594',
-//     name: 'Veľký Javorník',
-//     natural: 'peak',
-//     wikidata: 'Q31266883',
-//     wikipedia: 'sk:Veľký Javorník (Malé Karpaty)'
-//   }
-// },
