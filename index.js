@@ -1,18 +1,7 @@
 const gdal = require("gdal-next");
 const { create } = require("xmlbuilder2");
 
-const root = create({ version: "1.0" }).ele("osm", {
-  version: "0.6",
-  generator: "peak-position-adjuster",
-});
-
 // "/media/martin/ecf9e826-7b6b-4992-adad-71232022b316/martin/dmr5/R_02_17_s.tif"
-
-const ds = gdal.open(process.argv[2]);
-
-const band = ds.bands.get(1);
-
-const geotransform = ds.geoTransform;
 
 const wgs84 = gdal.SpatialReference.fromEPSG(4326);
 
@@ -28,13 +17,13 @@ const https = require("https");
 const chunks = [];
 
 // [bbox:{{bbox}}]
-const query = `[out:json][timeout:90];
+const query = Buffer.from(`[out:json][timeout:90];
 (
   node[natural=peak](area:3600014296);
 );
 (._;>;);
 out meta;
-`;
+`);
 
 const req = https.request(
   {
@@ -62,9 +51,20 @@ req.write(query);
 req.end();
 
 function adjust(elements) {
+  const root = create({ version: "1.0" }).ele("osm", {
+    version: "0.6",
+    generator: "peak-position-adjuster",
+  });
+
+  const ds = gdal.open(process.argv[2]);
+
+  const band = ds.bands.get(1);
+
+  const geotransform = ds.geoTransform;
+
   const oob = [];
 
-  for (const element of elements) {
+  outer: for (const element of elements) {
     const center = coord_transform.transformPoint({
       x: element.lat,
       y: element.lon,
@@ -89,6 +89,11 @@ function adjust(elements) {
               geotransform[3] - y
             );
 
+            if (ele < -9000) {
+              process.stderr.write("-");
+              continue outer;
+            }
+
             if (ele > maxEle) {
               maxEle = ele;
               px = x;
@@ -100,14 +105,13 @@ function adjust(elements) {
       }
 
       if (pd > 95) {
-        console.error("o");
         oob.push(element.id);
         continue;
       }
 
       const latlon = coord_transform1.transformPoint({ x: px, y: py });
 
-      console.error("X");
+      process.stderr.write("X");
 
       const node = root.ele("node", {
         id: element.id,
@@ -124,15 +128,15 @@ function adjust(elements) {
         node.ele("tag", { k, v });
       }
     } catch (err) {
-      if (!err.message.includes('out of')) {
+      if (!err.message.includes("out of")) {
         throw err;
       }
 
-      console.error(".");
+      process.stderr.write(".");
     }
   }
 
-  console.error('Out of bounds peaks: ' + oob.join(' '));
+  console.error("\nOut of bounds peaks: " + oob.join(" "));
 
   console.log(root.end({ prettyPrint: true }));
 }
