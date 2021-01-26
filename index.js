@@ -52,7 +52,7 @@ const req = https.request(
     });
 
     res.on("end", () => {
-      process(JSON.parse(chunks.join("")).elements);
+      adjust(JSON.parse(chunks.join("")).elements);
     });
   }
 );
@@ -61,7 +61,9 @@ req.write(query);
 
 req.end();
 
-function process(elements) {
+function adjust(elements) {
+  const oob = [];
+
   for (const element of elements) {
     const center = coord_transform.transformPoint({
       x: element.lat,
@@ -98,7 +100,8 @@ function process(elements) {
       }
 
       if (pd > 95) {
-        console.error("misplaced?", element.id);
+        console.error("o");
+        oob.push(element.id);
         continue;
       }
 
@@ -128,6 +131,8 @@ function process(elements) {
       console.error(".");
     }
   }
+
+  console.error('Out of bounds peaks: ' + oob.join(' '));
 
   console.log(root.end({ prettyPrint: true }));
 }
