@@ -56,83 +56,92 @@ function adjust(elements) {
     generator: "peak-position-adjuster",
   });
 
-  const ds = gdal.open(process.argv[2]);
-
-  const band = ds.bands.get(1);
-
-  const geotransform = ds.geoTransform;
-
   const oob = [];
 
-  outer: for (const element of elements) {
-    const center = coord_transform.transformPoint({
-      x: element.lat,
-      y: element.lon,
-    });
+  // TODO introduce workers
 
-    const cx = Math.round(center.x);
-    const cy = Math.round(center.y);
+  for (const file of process.argv.slice(2)) {
+    console.error('\nProcessing:', file);
 
-    let maxEle = -Infinity;
-    let px;
-    let py;
-    let pd;
+    const ds = gdal.open(file);
 
-    try {
-      for (let x = cx - 100; x < cx + 100; x++) {
-        for (let y = cy - 100; y < cy + 100; y++) {
-          const d = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+    const band = ds.bands.get(1);
 
-          if (d < 100) {
-            const ele = band.pixels.get(
-              x - geotransform[0],
-              geotransform[3] - y
-            );
+    const geotransform = ds.geoTransform;
 
-            if (ele < -9000) {
-              process.stderr.write("-");
-              continue outer;
-            }
+    outer: for (const element of elements) {
+      const center = coord_transform.transformPoint({
+        x: element.lat,
+        y: element.lon,
+      });
 
-            if (ele > maxEle) {
-              maxEle = ele;
-              px = x;
-              py = y;
-              pd = d;
+      const cx = Math.round(center.x);
+      const cy = Math.round(center.y);
+
+      let maxEle = -Infinity;
+      let px;
+      let py;
+      let pd;
+
+      try {
+        for (let x = cx - 100; x < cx + 100; x++) {
+          for (let y = cy - 100; y < cy + 100; y++) {
+            const d = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+
+            if (d < 100) {
+              const ele = band.pixels.get(
+                x - geotransform[0],
+                geotransform[3] - y
+              );
+
+              if (ele < -9000) {
+                process.stderr.write("-");
+                continue outer;
+              }
+
+              if (ele > maxEle) {
+                maxEle = ele;
+                px = x;
+                py = y;
+                pd = d;
+              }
             }
           }
         }
+
+        if (pd > 95) {
+          oob.push(element.id);
+          continue;
+        }
+
+        const latlon = coord_transform1.transformPoint({ x: px, y: py });
+
+        process.stderr.write("X");
+
+        const node = root.ele("node", {
+          id: element.id,
+          version: element.version,
+          lat: latlon.x,
+          lon: latlon.y,
+          user: element.user,
+          timestamp: element.timestamp,
+          visible: "true",
+          action: "modify",
+        });
+
+        for (const [k, v] of Object.entries(element.tags)) {
+          node.ele("tag", { k, v });
+        }
+
+        node.ele("tag", { k: 'ele:bpv', v: maxEle });
+        node.ele("tag", { k: 'source:ele:bpv', v: 'ÚGKK SR DMR5.0' });
+      } catch (err) {
+        if (!err.message.includes("out of")) {
+          throw err;
+        }
+
+        process.stderr.write(".");
       }
-
-      if (pd > 95) {
-        oob.push(element.id);
-        continue;
-      }
-
-      const latlon = coord_transform1.transformPoint({ x: px, y: py });
-
-      process.stderr.write("X");
-
-      const node = root.ele("node", {
-        id: element.id,
-        version: element.version,
-        lat: latlon.x,
-        lon: latlon.y,
-        user: element.user,
-        timestamp: element.timestamp,
-        visible: "true",
-        action: "modify",
-      });
-
-      for (const [k, v] of Object.entries(element.tags)) {
-        node.ele("tag", { k, v });
-      }
-    } catch (err) {
-      if (!err.message.includes("out of")) {
-        throw err;
-      }
-
-      process.stderr.write(".");
     }
   }
 

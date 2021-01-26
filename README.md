@@ -11,4 +11,4 @@ Tool adjusts peak positions according to DRM. It produces JOSM osm file.
 
 ## Running
 
-1. run `node . /path/to/dmr.tif > output.osm` (must be in EPSG:8353)
+1. run `node . /path/to/dmr1.tif [/path/to/dmr2.tif ...] > output.osm` (must be in EPSG:8353)
