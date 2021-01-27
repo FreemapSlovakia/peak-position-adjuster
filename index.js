@@ -19,7 +19,7 @@ const chunks = [];
 // [bbox:{{bbox}}]
 const query = Buffer.from(`[out:json][timeout:90];
 (
-  node[natural=peak](area:3600014296);
+  node[natural=peak]["source:ele"!="ÚGKK SR DMR5.0"](area:3600014296);
 );
 (._;>;);
 out meta;
@@ -109,11 +109,11 @@ function adjust(elements) {
           }
         }
 
-        if (pd < 3) {
-          process.stderr.write("✓");
+        // if (pd < 3) {
+        //   process.stderr.write("✓");
 
-          continue;
-        }
+        //   continue;
+        // }
 
         if (pd > 95) {
           process.stderr.write("✗");
