@@ -95,7 +95,7 @@ function adjust(elements) {
               );
 
               if (ele < -9000) {
-                process.stderr.write("-");
+                process.stderr.write("·");
                 continue outer;
               }
 
@@ -109,14 +109,23 @@ function adjust(elements) {
           }
         }
 
+        if (pd < 3) {
+          process.stderr.write("✓");
+
+          continue;
+        }
+
         if (pd > 95) {
+          process.stderr.write("✗");
+
           oob.push(element.id);
+
           continue;
         }
 
         const latlon = coord_transform1.transformPoint({ x: px, y: py });
 
-        process.stderr.write("X");
+        process.stderr.write("+");
 
         const node = root.ele("node", {
           id: element.id,
@@ -133,14 +142,15 @@ function adjust(elements) {
           node.ele("tag", { k, v });
         }
 
-        node.ele("tag", { k: 'ele:bpv', v: maxEle });
+        node.ele("tag", { k: 'ele:bpv', v: maxEle.toFixed(2) });
         node.ele("tag", { k: 'source:ele:bpv', v: 'ÚGKK SR DMR5.0' });
+        node.ele("tag", { k: 'source:position', v: 'ÚGKK SR DMR5.0' });
       } catch (err) {
         if (!err.message.includes("out of")) {
           throw err;
         }
 
-        process.stderr.write(".");
+        process.stderr.write("·");
       }
     }
   }
