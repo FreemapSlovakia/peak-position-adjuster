@@ -1,6 +1,6 @@
 # Peak Position Adjuster
 
-Tool adjusts peak positions according to DEM. It produces JOSM osm file.
+Tool adjusts peak positions according to DEM. It produces JOSM osm change file.
 
 ## Installation
 
