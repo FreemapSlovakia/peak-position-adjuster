@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "gdal-next": "^2.6.2",
-    "xmlbuilder2": "^2.4.0"
+    "gdal-next": "^2.8.0",
+    "xmlbuilder2": "^3.0.2"
   }
 }
