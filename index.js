@@ -94,7 +94,7 @@ function adjust(elements) {
                 geotransform[3] - y
               );
 
-              if (ele === band. noDataValue) {
+              if (ele === band.noDataValue) {
                 process.stderr.write("·");
                 continue outer;
               }
