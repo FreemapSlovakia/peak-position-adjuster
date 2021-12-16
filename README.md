@@ -11,4 +11,6 @@ Tool adjusts peak positions according to DEM. It produces JOSM osm file.
 
 ## Running
 
-1. run `node . /path/to/dmr1.tif [/path/to/dmr2.tif ...] > output.osm` (must be in EPSG:8353)
+Program downloads all peaks in Slovakia from Overpass; for different region just modify the query in `index.js`.
+
+1. run `node . /path/to/dmr1.tif [/path/to/dmr2.tif ...] > output.osm` (DEM data must be in EPSG:8353)
